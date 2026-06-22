@@ -34,15 +34,16 @@ swift test
 bash Scripts/bundle.sh           # release ビルド
 open Snapperkun.app
 
-# 安定した署名アイデンティティで署名する場合
-SIGN_IDENTITY="Snapperkun Self-Signed" bash Scripts/bundle.sh release
+# 安定した署名アイデンティティで署名する場合（Developer ID 等）
+SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" bash Scripts/bundle.sh release
 ```
 
 開発中の直接実行は `swift run` でも可能です。
 
 > アップデートで `.app` を入れ替えると、ad-hoc 署名だとアクセシビリティ権限 (TCC) が
-> 無効化されます。安定した自己署名証明書で署名すると権限が保持されます。
-> 設定方法は [docs/SIGNING.md](docs/SIGNING.md) を参照。
+> 無効化されます。安定した署名（Developer ID + 公証を推奨）にすると権限が保持され、
+> Gatekeeper 警告も出なくなります。設定方法は [docs/SIGNING.md](docs/SIGNING.md) を参照。
+> リリース（CI）は Secrets があれば Developer ID 署名 + notarization を行います。
 
 ## 使い方
 

@@ -50,6 +50,18 @@ jobs:
             echo "::warning::署名証明書のシークレット未設定のため ad-hoc 署名になります。アップデート後にアクセシビリティ権限が無効化されます。docs/SIGNING.md を参照してください。"
           fi
 
+      # 公証用シークレットの有無を判定（未設定なら公証をスキップ）。
+      - name: Check notarization secrets
+        id: notary
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          if [ -n "${{ secrets.NOTARY_PASSWORD }}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::公証用シークレット未設定のため notarization をスキップします（Gatekeeper 警告が残ります）。docs/SIGNING.md を参照してください。"
+          fi
+
       # 自己署名証明書を一時キーチェーンに取り込む（安定署名でTCC権限をアップデート越しに保持）。
       - name: Import signing certificate
         if: steps.signing.outputs.present == 'true'
@@ -75,6 +87,25 @@ jobs:
         env:
           SIGN_IDENTITY: ${{ secrets.SIGNING_IDENTITY }}
         run: bash Scripts/bundle.sh release
+
+      # Developer ID 署名済みアプリを公証し、チケットを .app に staple する。
+      - name: Notarize and staple
+        if: steps.notary.outputs.present == 'true'
+        env:
+          NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}
+          NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
+        run: |
+          # 公証は zip を提出する（.app をそのまま提出できないため）
+          ditto -c -k --keepParent Snapperkun.app notarize.zip
+          xcrun notarytool submit notarize.zip \
+            --apple-id "$NOTARY_APPLE_ID" \
+            --password "$NOTARY_PASSWORD" \
+            --team-id "$NOTARY_TEAM_ID" \
+            --wait
+          # チケットを .app に添付（オフラインでも Gatekeeper を通す）
+          xcrun stapler staple Snapperkun.app
+          xcrun stapler validate Snapperkun.app
 
       - name: Create zip
         if: steps.check.outputs.exists == 'false'
