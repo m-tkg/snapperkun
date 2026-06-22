@@ -68,6 +68,12 @@ swift run                    # 直接実行（開発時）
 
 ## 開発の進め方
 
+- **変更は必ず Pull Request 経由で行う。`main` への直接コミット/push はしない。**
+  作業はブランチを切って進め、`gh pr create` で PR を作成する。マージはレビュー後に行う
+  （リリース用 Actions が `push: branches: [main]` で発火し、main への push が
+  そのままリリースに直結するため）。
 - 純粋ロジック（`SnapperCore`）は **TDD**（テスト先行）で実装する。UI/AX 連携は手動確認。
 - 設定は `~/Library/Application Support/Snapperkun/settings.json` に保存される。
 - 動作確認には実機でのアクセシビリティ権限付与（GUI 操作）が必要。
+- リリースはバージョン（`Resources/Info.plist` の `CFBundleShortVersionString`）を上げて
+  main へ push されると Actions が `v<version>` を自動作成する。
