@@ -38,9 +38,19 @@ if [[ -f "$ICON_SRC" ]]; then
   rm -rf "$ICONSET"
 fi
 
-# ad-hoc 署名。自前ビルドでもアクセシビリティ権限の付与を安定させる。
-echo "==> Codesign (ad-hoc)"
-codesign --force --deep --sign - "$APP"
+# コード署名。
+# SIGN_IDENTITY が指定されていれば、その安定した署名アイデンティティで署名する。
+# 安定署名にすると、アップデートで .app を入れ替えてもアクセシビリティ権限(TCC)が保持される
+# （アドホック署名はビルドごとに署名が変わり、権限が無効化されてしまう）。
+SIGN_IDENTITY="${SIGN_IDENTITY:-}"
+if [[ -n "$SIGN_IDENTITY" ]]; then
+  # Developer ID 署名 + Hardened Runtime + セキュアタイムスタンプ（notarization の要件）。
+  echo "==> Codesign ($SIGN_IDENTITY)"
+  codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+else
+  echo "==> Codesign (ad-hoc)"
+  codesign --force --deep --sign - "$APP"
+fi
 
 echo "==> Done: $APP"
 echo "起動: open \"$APP\"   （初回はシステム設定 > プライバシーとセキュリティ > アクセシビリティ で許可）"
