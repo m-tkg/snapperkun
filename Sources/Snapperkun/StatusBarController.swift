@@ -26,8 +26,7 @@ final class StatusBarController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            // アプリアイコンのモノクロ（テンプレート）版をメニューバーアイコンに使う。
-            if let template = Self.makeTemplateIcon(from: NSApp.applicationIconImage) {
+            if let template = Self.menuBarImage() {
                 button.image = template
             } else {
                 button.image = NSImage(
@@ -82,8 +81,19 @@ final class StatusBarController: NSObject {
         quitApp()
     }
 
-    /// アプリアイコンから、メニューバー用のモノクロ（テンプレート）画像を生成する。
-    /// 透過済みアプリアイコンの「図柄部分のアルファ」をそのまま使い、RGB を 0（黒）にする。
+    /// メニューバーに表示するテンプレート画像を返す。
+    /// 専用画像（Resources/MenuBarIcon.png）があれば優先し、無ければアプリアイコンから生成する。
+    private static func menuBarImage() -> NSImage? {
+        if let url = Bundle.main.url(forResource: "MenuBarIcon", withExtension: "png"),
+           let image = NSImage(contentsOf: url),
+           let template = makeTemplateIcon(from: image) {
+            return template
+        }
+        return makeTemplateIcon(from: NSApp.applicationIconImage)
+    }
+
+    /// 画像から、メニューバー用のモノクロ（テンプレート）画像を生成する。
+    /// 「図柄部分のアルファ」をそのまま使い、RGB を 0（黒）にする。
     /// テンプレート画像として、メニューバーの明暗に応じて黒/白に着色される。
     /// 失敗時は nil。
     private static func makeTemplateIcon(from source: NSImage?, height: CGFloat = 18) -> NSImage? {
