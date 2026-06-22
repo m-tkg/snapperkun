@@ -28,7 +28,7 @@ swift run                    # 直接実行（開発時）
   - `RotationController` — ホットキー連打時の循環・リセット判定（純粋ロジック）
   - `CoordinateConverter` — AppKit 座標（左下原点）↔ CG/AX 座標（左上原点）の相互変換
   - `DisplaySelector` — 現在ディスプレイ index + 台数から移動先 index を循環で算出
-  - `Settings` / `Binding` / `KeyCombo` / `SettingsStore` — 設定モデルと JSON 永続化
+  - `Settings` / `Binding` / `KeyCombo` / `SettingsStore` / `SettingsCodec` — 設定モデルと JSON 永続化（`SettingsCodec` を永続化と import/export で共有）
   - `ReleaseInfo` / `VersionComparator` — 更新チェック用のリリースモデルとバージョン比較（純粋）
 - **`Snapperkun`（実行ファイル）**: AppKit/Carbon/AX 連携と UI。
   - `main.swift` — `NSApplication` 起動（`.accessory`、`MainActor.assumeIsolated`）

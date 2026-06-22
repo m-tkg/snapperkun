@@ -20,7 +20,7 @@ public final class SettingsStore {
     /// 設定を読み込む。ファイルが無い・壊れている場合は `Settings.empty` を返す。
     public func load() -> Settings {
         guard let data = try? Data(contentsOf: url),
-              let settings = try? JSONDecoder().decode(Settings.self, from: data) else {
+              let settings = try? SettingsCodec.settings(from: data) else {
             return .empty
         }
         return settings
@@ -32,9 +32,7 @@ public final class SettingsStore {
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(settings)
+        let data = try SettingsCodec.data(from: settings)
         try data.write(to: url, options: .atomic)
     }
 }
