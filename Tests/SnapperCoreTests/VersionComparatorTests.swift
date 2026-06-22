@@ -38,5 +38,23 @@ final class VersionComparatorTests: XCTestCase {
         let info = try JSONDecoder().decode(ReleaseInfo.self, from: json)
         XCTAssertEqual(info.tagName, "v1.2.3")
         XCTAssertEqual(info.htmlUrl, "https://example.com/r")
+        XCTAssertTrue(info.assets.isEmpty)  // assets 欠如時は空
+        XCTAssertNil(info.zipAssetURL)
+    }
+
+    func testReleaseInfoDecodesAssetsAndFindsZip() throws {
+        let json = """
+        {
+          "tag_name": "v1.1.0",
+          "html_url": "https://example.com/r",
+          "assets": [
+            {"name": "notes.txt", "browser_download_url": "https://example.com/notes.txt"},
+            {"name": "Snapperkun.zip", "browser_download_url": "https://example.com/Snapperkun.zip"}
+          ]
+        }
+        """.data(using: .utf8)!
+        let info = try JSONDecoder().decode(ReleaseInfo.self, from: json)
+        XCTAssertEqual(info.assets.count, 2)
+        XCTAssertEqual(info.zipAssetURL, URL(string: "https://example.com/Snapperkun.zip"))
     }
 }
