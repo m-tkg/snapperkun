@@ -8,16 +8,19 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let viewModel: SettingsViewModel
 
-    init(initialSettings: SnapperCore.Settings, onChange: @escaping (SnapperCore.Settings) -> Void) {
-        self.viewModel = SettingsViewModel(settings: initialSettings, onChange: onChange)
+    init(initialSettings: SnapperCore.Settings, onApply: @escaping (SnapperCore.Settings) -> Void) {
+        self.viewModel = SettingsViewModel(settings: initialSettings, onApply: onApply)
         super.init()
     }
 
     func show() {
         if window == nil {
-            let hosting = NSHostingController(rootView: SettingsView(viewModel: viewModel))
+            let rootView = SettingsView(viewModel: viewModel) { [weak self] in
+                self?.window?.close()
+            }
+            let hosting = NSHostingController(rootView: rootView)
             let window = NSWindow(contentViewController: hosting)
-            window.title = "Snapper 設定"
+            window.title = "Snapperkun 設定"
             window.styleMask = [.titled, .closable, .miniaturizable]
             window.setContentSize(NSSize(width: 600, height: 460))
             window.isReleasedWhenClosed = false

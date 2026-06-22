@@ -51,16 +51,32 @@ extension DisplayTarget {
 
 // MARK: - ViewModel
 
-/// 設定の編集状態を保持し、変更を onChange で通知する。
+/// 設定の編集状態を保持する。編集は作業コピー上で行い、Apply/OK で確定する。
 final class SettingsViewModel: ObservableObject {
-    @Published var settings: SnapperCore.Settings {
-        didSet { onChange(settings) }
-    }
-    private let onChange: (SnapperCore.Settings) -> Void
+    /// 編集中の作業コピー。
+    @Published var settings: SnapperCore.Settings
+    /// 直近に確定（Apply/OK）した内容。Cancel 時の復帰先。
+    private var committed: SnapperCore.Settings
+    private let onApply: (SnapperCore.Settings) -> Void
 
-    init(settings: SnapperCore.Settings, onChange: @escaping (SnapperCore.Settings) -> Void) {
+    init(settings: SnapperCore.Settings, onApply: @escaping (SnapperCore.Settings) -> Void) {
         self.settings = settings
-        self.onChange = onChange
+        self.committed = settings
+        self.onApply = onApply
+    }
+
+    /// 未確定の変更があるか。
+    var hasChanges: Bool { settings != committed }
+
+    /// 作業コピーを確定し保存・反映する。
+    func apply() {
+        committed = settings
+        onApply(settings)
+    }
+
+    /// 未確定の変更を破棄して直近の確定内容に戻す。
+    func revert() {
+        settings = committed
     }
 
     func addBinding() {
@@ -81,6 +97,12 @@ final class SettingsViewModel: ObservableObject {
 
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
+    /// OK/キャンセル時にウィンドウを閉じるためのコールバック。
+    let onClose: () -> Void
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -110,6 +132,30 @@ struct SettingsView: View {
                         }
                     }
                 }
+            }
+
+            Divider()
+
+            // フッター: バージョン表示 + 保存系ボタン
+            HStack {
+                Text("バージョン \(appVersion)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Button("キャンセル") {
+                    viewModel.revert()
+                    onClose()
+                }
+                .keyboardShortcut(.cancelAction)
+                Button("適用") {
+                    viewModel.apply()
+                }
+                .disabled(!viewModel.hasChanges)
+                Button("OK") {
+                    viewModel.apply()
+                    onClose()
+                }
+                .keyboardShortcut(.defaultAction)
             }
         }
         .padding()
