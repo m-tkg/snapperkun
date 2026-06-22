@@ -18,6 +18,11 @@ mkdir -p "$APP/Contents/Resources"
 cp "$BIN_DIR/Snapperkun" "$APP/Contents/MacOS/Snapperkun"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 
+# メニューバー用アイコン（実行時に Bundle.main から読み込む）
+if [[ -f "$ROOT/Resources/MenuBarIcon.png" ]]; then
+  cp "$ROOT/Resources/MenuBarIcon.png" "$APP/Contents/Resources/MenuBarIcon.png"
+fi
+
 # アプリアイコン: Resources/AppIcon.png から .icns を生成する。
 ICON_SRC="$ROOT/Resources/AppIcon.png"
 if [[ -f "$ICON_SRC" ]]; then
