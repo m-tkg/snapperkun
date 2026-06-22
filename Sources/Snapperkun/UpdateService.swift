@@ -4,7 +4,7 @@ import SnapperCore
 
 private let log = Logger(subsystem: "com.mtkg.snapperkun", category: "update")
 
-/// 外部プロセスを起動し、終了を待って標準出力を返す簡易ランナー。
+/// 外部プロセスを起動し、終了を待って標準出力を返す簡易ランナー（`.app` 展開の ditto などに使用）。
 enum ProcessRunner {
     struct Failure: Error {
         let exitCode: Int32
@@ -41,24 +41,29 @@ enum ProcessRunner {
     }
 }
 
-/// `gh` CLI 経由で GitHub リリースを取得・ダウンロードする。
-/// 本リポジトリは private のため、`gh` が認証済みでアクセス権がある環境でのみ動作する。
+/// 公開 GitHub API（api.github.com）へ URLSession でアクセスし、リリースの取得・ダウンロードを行う。
+/// public リポジトリのため認証は不要。
 struct UpdateService {
     static let repoFullName = "m-tkg/snapperkun"
+    static let apiBase = "https://api.github.com"
+    private static let userAgent = "Snapperkun"
 
     enum ServiceError: LocalizedError {
-        case ghNotFound
+        case requestFailed(Int)
         case decodeFailed
-        case commandFailed(String)
+        case noZipAsset
+        case downloadFailed(Int)
 
         var errorDescription: String? {
             switch self {
-            case .ghNotFound:
-                return "gh コマンドが見つかりません。GitHub CLI のインストールと認証が必要です。"
+            case .requestFailed(let code):
+                return "リリース情報の取得に失敗しました（HTTP \(code)）。"
             case .decodeFailed:
                 return "リリース情報の解析に失敗しました。"
-            case .commandFailed(let msg):
-                return "コマンドが失敗しました: \(msg)"
+            case .noZipAsset:
+                return "リリースに zip アセットが見つかりませんでした。"
+            case .downloadFailed(let code):
+                return "ダウンロードに失敗しました（HTTP \(code)）。"
             }
         }
     }
@@ -70,46 +75,42 @@ struct UpdateService {
 
     /// 最新リリース情報を取得する。
     func fetchLatestRelease() async throws -> ReleaseInfo {
-        let gh = try ghPath()
-        let json: String
-        do {
-            json = try await ProcessRunner.run(
-                executable: gh,
-                arguments: ["api", "repos/\(Self.repoFullName)/releases/latest"]
-            )
-        } catch let failure as ProcessRunner.Failure {
-            throw ServiceError.commandFailed(failure.stderr.trimmingCharacters(in: .whitespacesAndNewlines))
+        let url = URL(string: "\(Self.apiBase)/repos/\(Self.repoFullName)/releases/latest")!
+        var request = URLRequest(url: url)
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw ServiceError.requestFailed(-1)
         }
-        guard let release = try? JSONDecoder().decode(ReleaseInfo.self, from: Data(json.utf8)) else {
+        guard (200..<300).contains(http.statusCode) else {
+            throw ServiceError.requestFailed(http.statusCode)
+        }
+        guard let release = try? JSONDecoder().decode(ReleaseInfo.self, from: data) else {
             throw ServiceError.decodeFailed
         }
         return release
     }
 
-    /// 指定タグのリリースから zip 資産を `directory` にダウンロードする。
-    func downloadLatestReleaseZip(tag: String, into directory: URL) async throws {
-        let gh = try ghPath()
-        log.info("Downloading release \(tag, privacy: .public)")
-        do {
-            _ = try await ProcessRunner.run(
-                executable: gh,
-                arguments: ["release", "download", tag,
-                            "--repo", Self.repoFullName,
-                            "--pattern", "*.zip",
-                            "--dir", directory.path,
-                            "--clobber"]
-            )
-        } catch let failure as ProcessRunner.Failure {
-            throw ServiceError.commandFailed(failure.stderr.trimmingCharacters(in: .whitespacesAndNewlines))
+    /// リリースの zip アセットを `directory` にダウンロードし、保存先 URL を返す。
+    func downloadReleaseZip(_ release: ReleaseInfo, into directory: URL) async throws -> URL {
+        guard let assetURL = release.zipAssetURL else {
+            throw ServiceError.noZipAsset
         }
-    }
+        log.info("Downloading release \(release.tagName, privacy: .public) from \(assetURL.absoluteString, privacy: .public)")
 
-    private func ghPath() throws -> String {
-        let candidates = ["/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh"]
-        if let found = candidates.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) {
-            return found
+        var request = URLRequest(url: assetURL)
+        request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+
+        let (tempURL, response) = try await URLSession.shared.download(for: request)
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            throw ServiceError.downloadFailed(http.statusCode)
         }
-        log.error("gh not found in known paths")
-        throw ServiceError.ghNotFound
+
+        let destination = directory.appendingPathComponent("Snapperkun.zip")
+        try? FileManager.default.removeItem(at: destination)
+        try FileManager.default.moveItem(at: tempURL, to: destination)
+        return destination
     }
 }

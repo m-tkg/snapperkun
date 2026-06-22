@@ -50,20 +50,15 @@ final class SelfUpdater {
             .appendingPathComponent("snapperkun-update-\(UUID().uuidString)", isDirectory: true)
         try fm.createDirectory(at: workDir, withIntermediateDirectories: true)
 
-        // 1. ダウンロード（gh release download）
-        try await service.downloadLatestReleaseZip(tag: release.tagName, into: workDir)
+        // 1. zip アセットをダウンロード（公開 GitHub API / URLSession）
+        let zipURL = try await service.downloadReleaseZip(release, into: workDir)
 
-        // 2. zip を特定
-        guard let zipURL = try firstFile(in: workDir, pathExtension: "zip") else {
-            throw UpdateError.archiveNotFound
-        }
-
-        // 3. 展開（.app の展開には ditto が最適）
+        // 2. 展開（.app の展開には ditto が最適）
         let extractDir = workDir.appendingPathComponent("extracted", isDirectory: true)
         try fm.createDirectory(at: extractDir, withIntermediateDirectories: true)
         try await runAndWait("/usr/bin/ditto", ["-x", "-k", zipURL.path, extractDir.path])
 
-        // 4. .app を特定して識別子を検証
+        // 3. .app を特定して識別子を検証
         guard let newApp = try firstFile(in: extractDir, pathExtension: "app") else {
             throw UpdateError.bundleNotFound
         }
@@ -72,7 +67,7 @@ final class SelfUpdater {
             throw UpdateError.bundleIDMismatch
         }
 
-        // 5. 入れ替えスクリプトを切り離し起動し、自身を終了
+        // 4. 入れ替えスクリプトを切り離し起動し、自身を終了
         try launchReplaceScript(newApp: newApp, dest: bundleURL)
         logger.info("Relaunch script started; terminating for update to \(release.tagName, privacy: .public)")
         NSApp.terminate(nil)
