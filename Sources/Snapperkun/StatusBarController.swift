@@ -6,16 +6,22 @@ final class StatusBarController: NSObject {
     private let statusItem: NSStatusItem
     private let openSettings: () -> Void
     private let checkPermission: () -> Void
+    private let checkForUpdate: () -> Void
     private let quitApp: () -> Void
+    private var updateItem: NSMenuItem!
+
+    private static let checkUpdateTitle = "アップデートを確認…"
 
     init(
         openSettings: @escaping () -> Void,
         checkPermission: @escaping () -> Void,
+        checkForUpdate: @escaping () -> Void,
         quit: @escaping () -> Void
     ) {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.openSettings = openSettings
         self.checkPermission = checkPermission
+        self.checkForUpdate = checkForUpdate
         self.quitApp = quit
         super.init()
 
@@ -37,9 +43,21 @@ final class StatusBarController: NSObject {
         let menu = NSMenu()
         menu.addItem(menuItem(title: "設定…", action: #selector(handleOpenSettings), key: ","))
         menu.addItem(menuItem(title: "アクセシビリティ権限を確認", action: #selector(handleCheckPermission), key: ""))
+        updateItem = menuItem(title: Self.checkUpdateTitle, action: #selector(handleCheckForUpdate), key: "")
+        menu.addItem(updateItem)
         menu.addItem(.separator())
         menu.addItem(menuItem(title: "Snapperkun を終了", action: #selector(handleQuit), key: "q"))
         statusItem.menu = menu
+    }
+
+    /// 新バージョンが利用可能なときにメニュー文言を変更する。
+    func setUpdateAvailable(tag: String) {
+        updateItem.title = "アップデート \(tag) をインストール…"
+    }
+
+    /// 最新（更新なし）状態に戻す。
+    func clearUpdateAvailable() {
+        updateItem.title = Self.checkUpdateTitle
     }
 
     private func menuItem(title: String, action: Selector, key: String) -> NSMenuItem {
@@ -54,6 +72,10 @@ final class StatusBarController: NSObject {
 
     @objc private func handleCheckPermission() {
         checkPermission()
+    }
+
+    @objc private func handleCheckForUpdate() {
+        checkForUpdate()
     }
 
     @objc private func handleQuit() {

@@ -29,14 +29,16 @@ swift run                    # 直接実行（開発時）
   - `CoordinateConverter` — AppKit 座標（左下原点）↔ CG/AX 座標（左上原点）の相互変換
   - `DisplaySelector` — 現在ディスプレイ index + 台数から移動先 index を循環で算出
   - `Settings` / `Binding` / `KeyCombo` / `SettingsStore` — 設定モデルと JSON 永続化
+  - `ReleaseInfo` / `VersionComparator` — 更新チェック用のリリースモデルとバージョン比較（純粋）
 - **`Snapperkun`（実行ファイル）**: AppKit/Carbon/AX 連携と UI。
-  - `main.swift` — `NSApplication` 起動（`.accessory`）
-  - `AppDelegate` — 権限要求・設定読込・各 Manager 配線
+  - `main.swift` — `NSApplication` 起動（`.accessory`、`MainActor.assumeIsolated`）
+  - `AppDelegate` — 権限要求・設定読込・各 Manager 配線・更新フロー（`@MainActor`）
   - `StatusBarController` — メニューバー常駐メニュー
   - `WindowManager` — AX でアクティブウィンドウ取得・座標変換・フレーム適用
   - `HotkeyManager` — Carbon `RegisterEventHotKey` でグローバルホットキー
   - `SnapEngine` — ホットキー押下 → ウィンドウ取得 → 計算 → 適用 → 循環状態更新
   - `SettingsWindowController` / `SettingsView` / `ShortcutRecorderView` — SwiftUI 設定 UI
+  - `UpdateService` / `SelfUpdater` / `ProcessRunner` — `gh` 経由の更新チェックと自己更新（DL→`ditto`展開→bundle ID検証→切り離しスクリプトで入替→再起動）。private リポジトリのため `gh` 認証が前提
 
 データの流れ:
 ホットキー押下（`HotkeyManager`）→ `SnapEngine.handle(binding:)` →
