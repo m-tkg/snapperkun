@@ -44,8 +44,9 @@ fi
 # （アドホック署名はビルドごとに署名が変わり、権限が無効化されてしまう）。
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 if [[ -n "$SIGN_IDENTITY" ]]; then
+  # Developer ID 署名 + Hardened Runtime + セキュアタイムスタンプ（notarization の要件）。
   echo "==> Codesign ($SIGN_IDENTITY)"
-  codesign --force --deep --sign "$SIGN_IDENTITY" "$APP"
+  codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
 else
   echo "==> Codesign (ad-hoc)"
   codesign --force --deep --sign - "$APP"
