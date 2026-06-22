@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if settingsWindowController == nil {
             settingsWindowController = SettingsWindowController(
                 initialSettings: settings,
-                onChange: { [weak self] newSettings in
+                onApply: { [weak self] newSettings in
                     guard let self else { return }
                     self.settings = newSettings
                     try? self.store.save(newSettings)
