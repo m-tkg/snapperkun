@@ -83,7 +83,8 @@ final class StatusBarController: NSObject {
     }
 
     /// アプリアイコンから、メニューバー用のモノクロ（テンプレート）画像を生成する。
-    /// 黒一色にし、元画像の「暗さ」をアルファに写す（明るい背景は透明、図柄は不透明）。
+    /// 白黒反転版: 明るい領域（背景・パネル）を不透明にし、暗い線画を抜きにする。
+    /// 細い半透明ラインより塗り面積が大きく、メニューバーで視認しやすい。
     /// 失敗時は nil。
     private static func makeTemplateIcon(from source: NSImage?, height: CGFloat = 18) -> NSImage? {
         guard let source,
@@ -92,16 +93,16 @@ final class StatusBarController: NSObject {
         }
         let ciImage = CIImage(cgImage: cgImage)
 
-        // RGB を 0（黒）に、アルファ = 1 - 輝度 に変換する。
+        // RGB を 0（黒）に、アルファ = 輝度 に変換する（明るい領域ほど不透明）。
         guard let filter = CIFilter(name: "CIColorMatrix") else { return nil }
         filter.setValue(ciImage, forKey: kCIInputImageKey)
         let zero = CIVector(x: 0, y: 0, z: 0, w: 0)
         filter.setValue(zero, forKey: "inputRVector")
         filter.setValue(zero, forKey: "inputGVector")
         filter.setValue(zero, forKey: "inputBVector")
-        // アルファ = -(0.299R + 0.587G + 0.114B) + 1
-        filter.setValue(CIVector(x: -0.299, y: -0.587, z: -0.114, w: 0), forKey: "inputAVector")
-        filter.setValue(CIVector(x: 0, y: 0, z: 0, w: 1), forKey: "inputBiasVector")
+        // アルファ = 0.299R + 0.587G + 0.114B（輝度）
+        filter.setValue(CIVector(x: 0.299, y: 0.587, z: 0.114, w: 0), forKey: "inputAVector")
+        filter.setValue(zero, forKey: "inputBiasVector")
 
         guard let output = filter.outputImage else { return nil }
         let context = CIContext()
