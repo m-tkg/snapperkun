@@ -48,6 +48,15 @@ struct UpdateService {
     static let apiBase = "https://api.github.com"
     private static let userAgent = "Snapperkun"
 
+    /// 更新チェックは常に最新を取得したいので、キャッシュを使わない専用セッションを用いる。
+    /// （GitHub API は `cache-control: max-age=60` を返すため、共有セッションだと古い結果が返る）
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
+        return URLSession(configuration: config)
+    }()
+
     enum ServiceError: LocalizedError {
         case requestFailed(Int)
         case decodeFailed
@@ -79,8 +88,9 @@ struct UpdateService {
         var request = URLRequest(url: url)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
+        request.cachePolicy = .reloadIgnoringLocalCacheData
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw ServiceError.requestFailed(-1)
         }
@@ -103,7 +113,7 @@ struct UpdateService {
         var request = URLRequest(url: assetURL)
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
 
-        let (tempURL, response) = try await URLSession.shared.download(for: request)
+        let (tempURL, response) = try await session.download(for: request)
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
             throw ServiceError.downloadFailed(http.statusCode)
         }
