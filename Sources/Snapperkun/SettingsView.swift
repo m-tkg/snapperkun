@@ -79,6 +79,11 @@ final class SettingsViewModel: ObservableObject {
         settings = committed
     }
 
+    /// インポートした設定を作業コピーに読み込む（確定は Apply/OK で行う）。
+    func load(_ newSettings: SnapperCore.Settings) {
+        settings = newSettings
+    }
+
     func addBinding() {
         // ショートカットは未割り当て（nil）で開始する。
         let new = SnapperCore.Binding(
@@ -99,6 +104,10 @@ struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
     /// OK/キャンセル時にウィンドウを閉じるためのコールバック。
     let onClose: () -> Void
+    /// 設定をファイルにエクスポートする。
+    let onExport: () -> Void
+    /// 設定をファイルからインポートする。
+    let onImport: () -> Void
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -109,6 +118,8 @@ struct SettingsView: View {
             HStack {
                 Text("ホットキー設定").font(.headline)
                 Spacer()
+                Button("インポート…", action: onImport)
+                Button("エクスポート…", action: onExport)
                 Button {
                     viewModel.addBinding()
                 } label: {
