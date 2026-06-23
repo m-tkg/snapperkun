@@ -19,11 +19,14 @@ cp "$BIN_DIR/Snapperkun" "$APP/Contents/MacOS/Snapperkun"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 
 # SwiftPM が生成するリソースバンドル（ローカライズ文字列 en/ja を含む）。
-# Bundle.module が Contents/Resources から解決するため、ここに配置する。
+# Localization.swift の `L` が Contents/Resources から解決するため、ここに配置する。
+# 取りこぼすと GUI が未ローカライズになるため、無ければビルドを失敗させる。
 RES_BUNDLE="$BIN_DIR/Snapperkun_Snapperkun.bundle"
-if [[ -d "$RES_BUNDLE" ]]; then
-  cp -R "$RES_BUNDLE" "$APP/Contents/Resources/"
+if [[ ! -d "$RES_BUNDLE" ]]; then
+  echo "error: リソースバンドルが見つかりません: $RES_BUNDLE" >&2
+  exit 1
 fi
+cp -R "$RES_BUNDLE" "$APP/Contents/Resources/"
 
 # メニューバー用アイコン（実行時に Bundle.main から読み込む）
 if [[ -f "$ROOT/Resources/MenuBarIcon.png" ]]; then
