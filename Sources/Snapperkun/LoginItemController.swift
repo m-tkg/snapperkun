@@ -39,8 +39,7 @@ final class LoginItemController: ObservableObject {
         // ユーザーがシステム設定で「ログイン項目」を無効にしていると、
         // register しても .requiresApproval になり有効化されない。
         if enabled && service.status == .requiresApproval {
-            return "「ログイン項目」がシステム設定で無効になっています。"
-                + "システム設定 ＞ 一般 ＞ ログイン項目 で Snapperkun を許可してください。"
+            return L.string("login_item.requires_approval")
         }
         return nil
     }

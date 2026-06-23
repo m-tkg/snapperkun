@@ -10,7 +10,7 @@ final class StatusBarController: NSObject {
     private let quitApp: () -> Void
     private var updateItem: NSMenuItem!
 
-    private static let checkUpdateTitle = "アップデートを確認…"
+    private static var checkUpdateTitle: String { L.string("menu.check_update") }
 
     init(
         openSettings: @escaping () -> Void,
@@ -40,18 +40,18 @@ final class StatusBarController: NSObject {
         }
 
         let menu = NSMenu()
-        menu.addItem(menuItem(title: "設定…", action: #selector(handleOpenSettings), key: ","))
-        menu.addItem(menuItem(title: "アクセシビリティ権限を確認", action: #selector(handleCheckPermission), key: ""))
+        menu.addItem(menuItem(title: L.string("menu.settings"), action: #selector(handleOpenSettings), key: ","))
+        menu.addItem(menuItem(title: L.string("menu.check_permission"), action: #selector(handleCheckPermission), key: ""))
         updateItem = menuItem(title: Self.checkUpdateTitle, action: #selector(handleCheckForUpdate), key: "")
         menu.addItem(updateItem)
         menu.addItem(.separator())
-        menu.addItem(menuItem(title: "Snapperkun を終了", action: #selector(handleQuit), key: "q"))
+        menu.addItem(menuItem(title: L.string("menu.quit"), action: #selector(handleQuit), key: "q"))
         statusItem.menu = menu
     }
 
     /// 新バージョンが利用可能なときにメニュー文言を変更する。
     func setUpdateAvailable(tag: String) {
-        updateItem.title = "アップデート \(tag) をインストール…"
+        updateItem.title = L.format("menu.install_update", tag)
     }
 
     /// 最新（更新なし）状態に戻す。
