@@ -66,13 +66,13 @@ struct UpdateService {
         var errorDescription: String? {
             switch self {
             case .requestFailed(let code):
-                return "リリース情報の取得に失敗しました（HTTP \(code)）。"
+                return L.format("error.fetch_release_http", code)
             case .decodeFailed:
-                return "リリース情報の解析に失敗しました。"
+                return L.string("error.parse_release")
             case .noZipAsset:
-                return "リリースに zip アセットが見つかりませんでした。"
+                return L.string("error.no_zip_asset")
             case .downloadFailed(let code):
-                return "ダウンロードに失敗しました（HTTP \(code)）。"
+                return L.format("error.download_http", code)
             }
         }
     }

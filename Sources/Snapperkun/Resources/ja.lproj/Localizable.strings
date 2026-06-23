@@ -1,0 +1,80 @@
+/* Menu (StatusBarController) */
+"menu.settings" = "設定…";
+"menu.check_permission" = "アクセシビリティ権限を確認";
+"menu.check_update" = "アップデートを確認…";
+"menu.install_update" = "アップデート %@ をインストール…";
+"menu.quit" = "Snapperkun を終了";
+
+/* Settings window / panels */
+"settings.window.title" = "Snapperkun 設定";
+"panel.export.title" = "設定をエクスポート";
+"panel.import.title" = "設定をインポート";
+"error.export_failed" = "エクスポートに失敗しました。\n%@";
+"error.import_failed" = "インポートに失敗しました。設定ファイルを確認してください。\n%@";
+"alert.error.title" = "エラー";
+
+/* Settings view */
+"settings.hotkey.title" = "ホットキー設定";
+"settings.import" = "インポート…";
+"settings.export" = "エクスポート…";
+"settings.add_hotkey" = "ホットキー追加";
+"settings.empty" = "ホットキーがありません。「ホットキー追加」で作成してください。";
+"settings.launch_at_login" = "ログイン時に自動起動";
+"settings.version" = "バージョン %@";
+"settings.shortcut_label" = "ショートカット:";
+"settings.clear_shortcut" = "ショートカットをクリア";
+"settings.delete_hotkey" = "このホットキーを削除";
+"settings.specs_caption" = "サイズ・位置（複数あると押すたびに循環）";
+"settings.add_spec" = "サイズ・位置を追加";
+"settings.col.display" = "ディスプレイ";
+"settings.col.width" = "幅";
+"settings.col.height" = "高さ";
+"settings.col.horizontal" = "水平";
+"settings.col.vertical" = "垂直";
+
+/* Common buttons */
+"button.ok" = "OK";
+"button.cancel" = "キャンセル";
+"button.apply" = "適用";
+
+/* Enum display names */
+"common.keep" = "現状維持";
+"fraction.full" = "全体";
+"anchor.left" = "左";
+"anchor.center" = "中央";
+"anchor.right" = "右";
+"anchor.top" = "上";
+"anchor.middle" = "中央";
+"anchor.bottom" = "下";
+"display.current" = "現在";
+"display.next" = "次";
+"display.previous" = "前";
+
+/* Shortcut recorder */
+"shortcut.recording" = "キーを入力…";
+"shortcut.unset" = "未設定";
+
+/* Update flow (AppDelegate) */
+"update.latest" = "最新版です（v%@）。";
+"update.check_failed" = "アップデートの確認に失敗しました。\n%@";
+"update.available.title" = "新しいバージョン %@ があります";
+"update.available.body" = "現在: v%@\n更新するとアプリを再起動します。";
+"update.button.update" = "更新";
+"update.button.open_release" = "リリースページを開く";
+"update.failed" = "更新に失敗しました。\n%@";
+
+/* Update service errors */
+"error.fetch_release_http" = "リリース情報の取得に失敗しました（HTTP %d）。";
+"error.parse_release" = "リリース情報の解析に失敗しました。";
+"error.no_zip_asset" = "リリースに zip アセットが見つかりませんでした。";
+"error.download_http" = "ダウンロードに失敗しました（HTTP %d）。";
+
+/* Self-updater errors */
+"error.not_writable" = "アプリの場所に書き込めません: %@。手動での更新が必要です。";
+"error.no_zip" = "リリースに zip が見つかりませんでした。";
+"error.command_failed" = "更新コマンドが失敗しました: %@";
+"error.no_app_in_archive" = "ダウンロードしたアーカイブに .app が見つかりませんでした。";
+"error.bundle_id_mismatch" = "ダウンロードした .app の識別子が一致しませんでした。";
+
+/* Login item */
+"login_item.requires_approval" = "「ログイン項目」がシステム設定で無効になっています。システム設定 ＞ 一般 ＞ ログイン項目 で Snapperkun を許可してください。";

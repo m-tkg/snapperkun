@@ -81,13 +81,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     if isNewer {
                         promptInstall(release)
                     } else {
-                        showInfo("最新版です（v\(UpdateService.currentVersion)）。")
+                        showInfo(L.format("update.latest", UpdateService.currentVersion))
                     }
                 }
             } catch {
                 log.error("update check failed: \(error.localizedDescription, privacy: .public)")
                 if interactive {
-                    showError("アップデートの確認に失敗しました。\n\(error.localizedDescription)")
+                    showError(L.format("update.check_failed", error.localizedDescription))
                 }
             }
         }
@@ -97,11 +97,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func promptInstall(_ release: ReleaseInfo) {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "新しいバージョン \(release.tagName) があります"
-        alert.informativeText = "現在: v\(UpdateService.currentVersion)\n更新するとアプリを再起動します。"
-        alert.addButton(withTitle: "更新")
-        alert.addButton(withTitle: "リリースページを開く")
-        alert.addButton(withTitle: "キャンセル")
+        alert.messageText = L.format("update.available.title", release.tagName)
+        alert.informativeText = L.format("update.available.body", UpdateService.currentVersion)
+        alert.addButton(withTitle: L.string("update.button.update"))
+        alert.addButton(withTitle: L.string("update.button.open_release"))
+        alert.addButton(withTitle: L.string("button.cancel"))
         switch alert.runModal() {
         case .alertFirstButtonReturn:
             performUpdate(release)
@@ -120,7 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 // 成功時はアプリが終了するためここには戻らない。
             } catch {
                 log.error("self-update failed: \(error.localizedDescription, privacy: .public)")
-                showError("更新に失敗しました。\n\(error.localizedDescription)")
+                showError(L.format("update.failed", error.localizedDescription))
             }
         }
     }
@@ -139,7 +139,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "エラー"
+        alert.messageText = L.string("alert.error.title")
         alert.informativeText = text
         alert.runModal()
     }
