@@ -102,12 +102,17 @@ final class SettingsViewModel: ObservableObject {
 
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
+    /// ログイン時の自動起動（ホットキー設定とは独立した即時反映項目）。
+    @ObservedObject var loginItem: LoginItemController
     /// OK/キャンセル時にウィンドウを閉じるためのコールバック。
     let onClose: () -> Void
     /// 設定をファイルにエクスポートする。
     let onExport: () -> Void
     /// 設定をファイルからインポートする。
     let onImport: () -> Void
+
+    /// 自動起動の切り替えに失敗した際のエラーメッセージ。
+    @State private var loginItemError: String?
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -147,6 +152,17 @@ struct SettingsView: View {
 
             Divider()
 
+            // 一般設定（ホットキー設定とは独立。トグル操作で即時反映する）。
+            Toggle("ログイン時に自動起動", isOn: Binding(
+                get: { loginItem.isEnabled },
+                set: { newValue in
+                    if let message = loginItem.setEnabled(newValue) {
+                        loginItemError = message
+                    }
+                }
+            ))
+            .toggleStyle(.checkbox)
+
             // フッター: バージョン表示 + 保存系ボタン
             HStack {
                 Text("バージョン \(appVersion)")
@@ -171,6 +187,14 @@ struct SettingsView: View {
         }
         .padding()
         .frame(minWidth: 600, minHeight: 460)
+        .alert("エラー", isPresented: Binding(
+            get: { loginItemError != nil },
+            set: { if !$0 { loginItemError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(loginItemError ?? "")
+        }
     }
 }
 
