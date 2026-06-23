@@ -39,6 +39,7 @@ swift run                    # 直接実行（開発時）
   - `SnapEngine` — ホットキー押下 → ウィンドウ取得 → 計算 → 適用 → 循環状態更新
   - `SettingsWindowController` / `SettingsView` / `ShortcutRecorderView` — SwiftUI 設定 UI
   - `UpdateService` / `SelfUpdater` / `ProcessRunner` — 更新チェックと自己更新。`UpdateService` は公開 GitHub API（api.github.com）へ URLSession でアクセス（認証不要）。`SelfUpdater` は zip DL→`ditto`展開→bundle ID検証→切り離しスクリプトで入替→再起動（`ProcessRunner` は ditto 実行に使用）
+  - `Localization`（`L`）/ `Resources/{en,ja}.lproj/Localizable.strings` — GUI 文字列の多言語対応（後述）
 
 データの流れ:
 ホットキー押下（`HotkeyManager`）→ `SnapEngine.handle(binding:)` →
@@ -65,6 +66,28 @@ swift run                    # 直接実行（開発時）
 - **`Settings` の名前衝突**: SwiftUI を import するファイルでは `Settings` / `Binding` が
   SwiftUI の同名型と衝突するため `SnapperCore.Settings` / `SnapperCore.Binding`、
   SwiftUI 側は `@SwiftUI.Binding` と明示する。
+
+## 多言語対応（ローカライズ）
+
+GUI に表示する文字列は **日本語・英語の 2 言語に対応**し、OS の優先言語に追従する（既定 `en`）。
+
+- **必須ルール: GUI に文字列を追加・変更したら、必ず多言語対応すること。**
+  ハードコードした日本語/英語リテラルを `Text`/`Button`/`NSMenuItem`/`NSAlert`/ウィンドウタイトル等に
+  直接渡してはいけない。新しい文字列を足すときは:
+  1. `Sources/Snapperkun/Resources/en.lproj/Localizable.strings` と `ja.lproj/Localizable.strings`
+     の**両方**にキーと対訳を追加する（キーは `menu.settings` のようなドット区切りの意味ベース）。
+  2. コードでは `L.string("キー")`（静的文字列）または `L.format("キー", 値…)`（`%@`/`%d` 埋め込み）
+     で参照する（`Sources/Snapperkun/Localization.swift`）。
+- **仕組み**: `L` は `Bundle.module`（SwiftPM リソースバンドル）からローカライズ文字列を解決する。
+  SwiftUI の `Text`/`Button` 等は既定で `Bundle.main` を見るため、自前で `.module` から解決して
+  確定済み `String` を渡す。`Package.swift` は `defaultLocalization: "en"` と
+  `resources: [.process("Resources")]` を指定済み。
+- **`.app` への取り込み**: `Scripts/bundle.sh` が SwiftPM 生成の `Snapperkun_Snapperkun.bundle` を
+  `Contents/Resources/` にコピーする（これが無いと実行時に文字列が解決できない）。
+- **対象外**: 分数表記（`3/4` 等）やアプリ名 `Snapperkun` のような言語非依存な文字列、
+  ログ出力（`os.Logger`）は対象外。
+- 確認: OS の言語設定を切り替えるか、`Bundle.preferredLocalizations(from:forPreferences:)` で
+  言語別の解決を検証できる。
 
 ## 開発の進め方
 

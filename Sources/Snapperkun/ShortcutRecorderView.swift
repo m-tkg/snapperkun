@@ -48,7 +48,7 @@ final class RecorderNSView: NSView {
         path.lineWidth = recording ? 2 : 1
         path.stroke()
 
-        let text = recording ? "キーを入力…" : (keyCombo.map(Self.describe) ?? "未設定")
+        let text = recording ? L.string("shortcut.recording") : (keyCombo.map(Self.describe) ?? L.string("shortcut.unset"))
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 12),
             .foregroundColor: NSColor.labelColor,

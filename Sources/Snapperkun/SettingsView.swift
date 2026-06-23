@@ -6,8 +6,9 @@ import SnapperCore
 extension Fraction {
     var displayName: String {
         switch self {
-        case .keep: return "現状維持"
-        case .full: return "全体"
+        case .keep: return L.string("common.keep")
+        case .full: return L.string("fraction.full")
+        // 分数表記は言語非依存のためそのまま表示する。
         case .threeQuarters: return "3/4"
         case .twoThirds: return "2/3"
         case .half: return "1/2"
@@ -20,10 +21,10 @@ extension Fraction {
 extension HorizontalAnchor {
     var displayName: String {
         switch self {
-        case .keep: return "現状維持"
-        case .left: return "左"
-        case .center: return "中央"
-        case .right: return "右"
+        case .keep: return L.string("common.keep")
+        case .left: return L.string("anchor.left")
+        case .center: return L.string("anchor.center")
+        case .right: return L.string("anchor.right")
         }
     }
 }
@@ -31,10 +32,10 @@ extension HorizontalAnchor {
 extension VerticalAnchor {
     var displayName: String {
         switch self {
-        case .keep: return "現状維持"
-        case .top: return "上"
-        case .middle: return "中央"
-        case .bottom: return "下"
+        case .keep: return L.string("common.keep")
+        case .top: return L.string("anchor.top")
+        case .middle: return L.string("anchor.middle")
+        case .bottom: return L.string("anchor.bottom")
         }
     }
 }
@@ -42,9 +43,9 @@ extension VerticalAnchor {
 extension DisplayTarget {
     var displayName: String {
         switch self {
-        case .current: return "現在"
-        case .next: return "次"
-        case .previous: return "前"
+        case .current: return L.string("display.current")
+        case .next: return L.string("display.next")
+        case .previous: return L.string("display.previous")
         }
     }
 }
@@ -121,20 +122,20 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("ホットキー設定").font(.headline)
+                Text(L.string("settings.hotkey.title")).font(.headline)
                 Spacer()
-                Button("インポート…", action: onImport)
-                Button("エクスポート…", action: onExport)
+                Button(L.string("settings.import"), action: onImport)
+                Button(L.string("settings.export"), action: onExport)
                 Button {
                     viewModel.addBinding()
                 } label: {
-                    Label("ホットキー追加", systemImage: "plus")
+                    Label(L.string("settings.add_hotkey"), systemImage: "plus")
                 }
             }
 
             if viewModel.settings.bindings.isEmpty {
                 Spacer()
-                Text("ホットキーがありません。「ホットキー追加」で作成してください。")
+                Text(L.string("settings.empty"))
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                 Spacer()
@@ -153,7 +154,7 @@ struct SettingsView: View {
             Divider()
 
             // 一般設定（ホットキー設定とは独立。トグル操作で即時反映する）。
-            Toggle("ログイン時に自動起動", isOn: Binding(
+            Toggle(L.string("settings.launch_at_login"), isOn: Binding(
                 get: { loginItem.isEnabled },
                 set: { newValue in
                     if let message = loginItem.setEnabled(newValue) {
@@ -165,20 +166,20 @@ struct SettingsView: View {
 
             // フッター: バージョン表示 + 保存系ボタン
             HStack {
-                Text("バージョン \(appVersion)")
+                Text(L.format("settings.version", appVersion))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Spacer()
-                Button("キャンセル") {
+                Button(L.string("button.cancel")) {
                     viewModel.revert()
                     onClose()
                 }
                 .keyboardShortcut(.cancelAction)
-                Button("適用") {
+                Button(L.string("button.apply")) {
                     viewModel.apply()
                 }
                 .disabled(!viewModel.hasChanges)
-                Button("OK") {
+                Button(L.string("button.ok")) {
                     viewModel.apply()
                     onClose()
                 }
@@ -187,7 +188,7 @@ struct SettingsView: View {
         }
         .padding()
         .frame(minWidth: 600, minHeight: 460)
-        .alert("エラー", isPresented: Binding(
+        .alert(L.string("alert.error.title"), isPresented: Binding(
             get: { loginItemError != nil },
             set: { if !$0 { loginItemError = nil } }
         )) {
@@ -205,7 +206,7 @@ struct BindingRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("ショートカット:")
+                Text(L.string("settings.shortcut_label"))
                 ShortcutRecorder(keyCombo: $binding.keyCombo)
                     .frame(width: 170, height: 24)
                 Button {
@@ -214,16 +215,16 @@ struct BindingRowView: View {
                     Image(systemName: "xmark.circle")
                 }
                 .buttonStyle(.borderless)
-                .help("ショートカットをクリア")
+                .help(L.string("settings.clear_shortcut"))
                 .disabled(binding.keyCombo == nil)
                 Spacer()
                 Button(role: .destructive, action: onDelete) {
                     Image(systemName: "trash")
                 }
-                .help("このホットキーを削除")
+                .help(L.string("settings.delete_hotkey"))
             }
 
-            Text("サイズ・位置（複数あると押すたびに循環）")
+            Text(L.string("settings.specs_caption"))
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -238,7 +239,7 @@ struct BindingRowView: View {
                     SnapSpec(width: .half, height: .full, horizontal: .left, vertical: .top)
                 )
             } label: {
-                Label("サイズ・位置を追加", systemImage: "plus.circle")
+                Label(L.string("settings.add_spec"), systemImage: "plus.circle")
             }
             .buttonStyle(.borderless)
         }
@@ -254,11 +255,11 @@ struct SpecRowView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            labeledPicker("ディスプレイ", selection: $spec.display, options: DisplayTarget.allCases) { $0.displayName }
-            labeledPicker("幅", selection: $spec.width, options: Fraction.allCases) { $0.displayName }
-            labeledPicker("高さ", selection: $spec.height, options: Fraction.allCases) { $0.displayName }
-            labeledPicker("水平", selection: $spec.horizontal, options: HorizontalAnchor.allCases) { $0.displayName }
-            labeledPicker("垂直", selection: $spec.vertical, options: VerticalAnchor.allCases) { $0.displayName }
+            labeledPicker(L.string("settings.col.display"), selection: $spec.display, options: DisplayTarget.allCases) { $0.displayName }
+            labeledPicker(L.string("settings.col.width"), selection: $spec.width, options: Fraction.allCases) { $0.displayName }
+            labeledPicker(L.string("settings.col.height"), selection: $spec.height, options: Fraction.allCases) { $0.displayName }
+            labeledPicker(L.string("settings.col.horizontal"), selection: $spec.horizontal, options: HorizontalAnchor.allCases) { $0.displayName }
+            labeledPicker(L.string("settings.col.vertical"), selection: $spec.vertical, options: VerticalAnchor.allCases) { $0.displayName }
             Spacer()
             Button(action: onDelete) {
                 Image(systemName: "minus.circle")
