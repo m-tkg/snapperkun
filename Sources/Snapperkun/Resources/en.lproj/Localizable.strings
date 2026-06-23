@@ -1,0 +1,80 @@
+/* Menu (StatusBarController) */
+"menu.settings" = "Settings…";
+"menu.check_permission" = "Check Accessibility Permission";
+"menu.check_update" = "Check for Updates…";
+"menu.install_update" = "Install Update %@…";
+"menu.quit" = "Quit Snapperkun";
+
+/* Settings window / panels */
+"settings.window.title" = "Snapperkun Settings";
+"panel.export.title" = "Export Settings";
+"panel.import.title" = "Import Settings";
+"error.export_failed" = "Failed to export.\n%@";
+"error.import_failed" = "Failed to import. Please check the settings file.\n%@";
+"alert.error.title" = "Error";
+
+/* Settings view */
+"settings.hotkey.title" = "Hotkey Settings";
+"settings.import" = "Import…";
+"settings.export" = "Export…";
+"settings.add_hotkey" = "Add Hotkey";
+"settings.empty" = "No hotkeys yet. Create one with “Add Hotkey”.";
+"settings.launch_at_login" = "Launch at Login";
+"settings.version" = "Version %@";
+"settings.shortcut_label" = "Shortcut:";
+"settings.clear_shortcut" = "Clear shortcut";
+"settings.delete_hotkey" = "Delete this hotkey";
+"settings.specs_caption" = "Size & position (cycles on repeated press)";
+"settings.add_spec" = "Add size & position";
+"settings.col.display" = "Display";
+"settings.col.width" = "Width";
+"settings.col.height" = "Height";
+"settings.col.horizontal" = "Horizontal";
+"settings.col.vertical" = "Vertical";
+
+/* Common buttons */
+"button.ok" = "OK";
+"button.cancel" = "Cancel";
+"button.apply" = "Apply";
+
+/* Enum display names */
+"common.keep" = "Keep";
+"fraction.full" = "Full";
+"anchor.left" = "Left";
+"anchor.center" = "Center";
+"anchor.right" = "Right";
+"anchor.top" = "Top";
+"anchor.middle" = "Middle";
+"anchor.bottom" = "Bottom";
+"display.current" = "Current";
+"display.next" = "Next";
+"display.previous" = "Previous";
+
+/* Shortcut recorder */
+"shortcut.recording" = "Type a shortcut…";
+"shortcut.unset" = "Not set";
+
+/* Update flow (AppDelegate) */
+"update.latest" = "You’re up to date (v%@).";
+"update.check_failed" = "Failed to check for updates.\n%@";
+"update.available.title" = "Version %@ is available";
+"update.available.body" = "Current: v%@\nUpdating will restart the app.";
+"update.button.update" = "Update";
+"update.button.open_release" = "Open Release Page";
+"update.failed" = "Update failed.\n%@";
+
+/* Update service errors */
+"error.fetch_release_http" = "Failed to fetch release info (HTTP %d).";
+"error.parse_release" = "Failed to parse release info.";
+"error.no_zip_asset" = "No zip asset found in the release.";
+"error.download_http" = "Download failed (HTTP %d).";
+
+/* Self-updater errors */
+"error.not_writable" = "Cannot write to the app location: %@. A manual update is required.";
+"error.no_zip" = "No zip found in the release.";
+"error.command_failed" = "Update command failed: %@";
+"error.no_app_in_archive" = "No .app was found in the downloaded archive.";
+"error.bundle_id_mismatch" = "The downloaded .app has a mismatched identifier.";
+
+/* Login item */
+"login_item.requires_approval" = "“Login Items” is disabled in System Settings. Allow Snapperkun under System Settings ＞ General ＞ Login Items.";

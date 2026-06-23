@@ -21,15 +21,15 @@ final class SelfUpdater {
         var errorDescription: String? {
             switch self {
             case .notWritable(let path):
-                return "アプリの場所に書き込めません: \(path)。手動での更新が必要です。"
+                return L.format("error.not_writable", path)
             case .archiveNotFound:
-                return "リリースに zip が見つかりませんでした。"
+                return L.string("error.no_zip")
             case .commandFailed(let msg):
-                return "更新コマンドが失敗しました: \(msg)"
+                return L.format("error.command_failed", msg)
             case .bundleNotFound:
-                return "ダウンロードしたアーカイブに .app が見つかりませんでした。"
+                return L.string("error.no_app_in_archive")
             case .bundleIDMismatch:
-                return "ダウンロードした .app の識別子が一致しませんでした。"
+                return L.string("error.bundle_id_mismatch")
             }
         }
     }

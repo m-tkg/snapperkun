@@ -29,7 +29,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             )
             let hosting = NSHostingController(rootView: rootView)
             let window = NSWindow(contentViewController: hosting)
-            window.title = "Snapperkun 設定"
+            window.title = L.string("settings.window.title")
             window.styleMask = [.titled, .closable, .miniaturizable]
             window.setContentSize(NSSize(width: 600, height: 460))
             window.isReleasedWhenClosed = false
@@ -54,7 +54,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private func exportSettings() {
         guard let window else { return }
         let panel = NSSavePanel()
-        panel.title = "設定をエクスポート"
+        panel.title = L.string("panel.export.title")
         panel.nameFieldStringValue = "snapperkun-settings.json"
         panel.allowedContentTypes = [.json]
         panel.canCreateDirectories = true
@@ -64,7 +64,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
                 let data = try SettingsCodec.data(from: self.viewModel.settings)
                 try data.write(to: url, options: .atomic)
             } catch {
-                self.showError("エクスポートに失敗しました。\n\(error.localizedDescription)")
+                self.showError(L.format("error.export_failed", error.localizedDescription))
             }
         }
     }
@@ -73,7 +73,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private func importSettings() {
         guard let window else { return }
         let panel = NSOpenPanel()
-        panel.title = "設定をインポート"
+        panel.title = L.string("panel.import.title")
         panel.allowedContentTypes = [.json]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -84,7 +84,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
                 let settings = try SettingsCodec.settings(from: data)
                 self.viewModel.load(settings)
             } catch {
-                self.showError("インポートに失敗しました。設定ファイルを確認してください。\n\(error.localizedDescription)")
+                self.showError(L.format("error.import_failed", error.localizedDescription))
             }
         }
     }
@@ -92,7 +92,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private func showError(_ text: String) {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = "エラー"
+        alert.messageText = L.string("alert.error.title")
         alert.informativeText = text
         if let window {
             alert.beginSheetModal(for: window)
