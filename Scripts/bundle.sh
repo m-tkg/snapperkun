@@ -5,7 +5,16 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${1:-release}"
-APP="$ROOT/Snapperkun.app"
+
+# ローカル検証ビルド（LOCAL=1）はバンドル ID/表示名を分けて本番と権限(TCC)を分離する。
+if [[ "${LOCAL:-}" == "1" ]]; then
+  APP_NAME="Snapperkun (Local)"
+  BUNDLE_ID="com.mtkg.snapperkun.local"
+else
+  APP_NAME="Snapperkun"
+  BUNDLE_ID="com.mtkg.snapperkun"
+fi
+APP="$ROOT/$APP_NAME.app"
 
 echo "==> Building ($CONFIG)"
 swift build -c "$CONFIG" --package-path "$ROOT"
@@ -17,6 +26,13 @@ mkdir -p "$APP/Contents/MacOS"
 mkdir -p "$APP/Contents/Resources"
 cp "$BIN_DIR/Snapperkun" "$APP/Contents/MacOS/Snapperkun"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
+
+# ローカル検証ビルドはバンドル ID/表示名を差し替える（CFBundleExecutable は Snapperkun のまま）。
+if [[ "${LOCAL:-}" == "1" ]]; then
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$APP/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleName $APP_NAME" "$APP/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName $APP_NAME" "$APP/Contents/Info.plist"
+fi
 
 # SwiftPM が生成するリソースバンドル（ローカライズ文字列 en/ja を含む）。
 # Localization.swift の `L` が Contents/Resources から解決するため、ここに配置する。
