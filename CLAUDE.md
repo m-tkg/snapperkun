@@ -39,7 +39,10 @@ swift run                    # 直接実行（開発時）
   - `WindowManager` — AX でアクティブウィンドウ取得・座標変換・フレーム適用
   - `HotkeyManager` — Carbon `RegisterEventHotKey` でグローバルホットキー
   - `SnapEngine` — ホットキー押下 → ウィンドウ取得 → 計算 → 適用 → 循環状態更新
-  - `SettingsWindowController` / `SettingsView` / `ShortcutRecorderView` — SwiftUI 設定 UI
+  - `SettingsWindowController` / `SettingsView` / `ShortcutRecorderView` — SwiftUI 設定 UI。
+    `SettingsView` は `TabView` で「一般」（自動起動・バージョン、左端）と「ホットキー」タブに分割し、
+    OK/Apply/Cancel フッターは全タブ共通。表示中は Dock アイコンを出す（`SettingsWindowController` が
+    `setActivationPolicy(.regular)` ↔ `.accessory` を切り替え）
   - `UpdateService` / `SelfUpdater` / `ProcessRunner` — 更新チェックと自己更新。`UpdateService` は公開 GitHub API（api.github.com）へ URLSession でアクセス（認証不要）。`SelfUpdater` は zip DL→`ditto`展開→bundle ID検証→切り離しスクリプトで入替→再起動（`ProcessRunner` は ditto 実行に使用）
   - `Localization`（`L`）/ `Resources/{en,ja}.lproj/Localizable.strings` — GUI 文字列の多言語対応（後述）
 

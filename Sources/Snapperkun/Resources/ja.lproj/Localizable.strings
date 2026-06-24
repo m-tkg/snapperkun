@@ -15,6 +15,10 @@
 "error.import_failed" = "インポートに失敗しました。設定ファイルを確認してください。\n%@";
 "alert.error.title" = "エラー";
 
+/* Settings tabs */
+"tab.general" = "一般";
+"tab.hotkey" = "ホットキー";
+
 /* Settings view */
 "settings.hotkey.title" = "ホットキー設定";
 "settings.import" = "インポート…";
