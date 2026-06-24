@@ -13,6 +13,10 @@
 "error.import_failed" = "Failed to import. Please check the settings file.\n%@";
 "alert.error.title" = "Error";
 
+/* Settings tabs */
+"tab.general" = "General";
+"tab.hotkey" = "Hotkey";
+
 /* Settings view */
 "settings.hotkey.title" = "Hotkey Settings";
 "settings.import" = "Import…";

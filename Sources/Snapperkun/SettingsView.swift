@@ -120,6 +120,77 @@ struct SettingsView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            TabView {
+                // 「一般」タブは左端に置く。
+                generalTab
+                    .tabItem { Text(L.string("tab.general")) }
+                hotkeyTab
+                    .tabItem { Text(L.string("tab.hotkey")) }
+            }
+            .padding([.top, .horizontal])
+
+            Divider()
+
+            // フッター: 保存系ボタン（全タブ共通）
+            HStack {
+                Spacer()
+                Button(L.string("button.cancel")) {
+                    viewModel.revert()
+                    onClose()
+                }
+                .keyboardShortcut(.cancelAction)
+                Button(L.string("button.apply")) {
+                    viewModel.apply()
+                }
+                .disabled(!viewModel.hasChanges)
+                Button(L.string("button.ok")) {
+                    viewModel.apply()
+                    onClose()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding()
+        }
+        .frame(minWidth: 600, minHeight: 460)
+        .alert(L.string("alert.error.title"), isPresented: Binding(
+            get: { loginItemError != nil },
+            set: { if !$0 { loginItemError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(loginItemError ?? "")
+        }
+    }
+
+    /// 一般タブ: ログイン時の自動起動（即時反映）とバージョン表示。
+    @ViewBuilder
+    private var generalTab: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // ホットキー設定とは独立。トグル操作で即時反映する。
+            Toggle(L.string("settings.launch_at_login"), isOn: Binding(
+                get: { loginItem.isEnabled },
+                set: { newValue in
+                    if let message = loginItem.setEnabled(newValue) {
+                        loginItemError = message
+                    }
+                }
+            ))
+            .toggleStyle(.checkbox)
+
+            Text(L.format("settings.version", appVersion))
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            Spacer()
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    /// ホットキータブ: ホットキー一覧と追加/インポート/エクスポート。
+    @ViewBuilder
+    private var hotkeyTab: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(L.string("settings.hotkey.title")).font(.headline)
@@ -150,52 +221,9 @@ struct SettingsView: View {
                     }
                 }
             }
-
-            Divider()
-
-            // 一般設定（ホットキー設定とは独立。トグル操作で即時反映する）。
-            Toggle(L.string("settings.launch_at_login"), isOn: Binding(
-                get: { loginItem.isEnabled },
-                set: { newValue in
-                    if let message = loginItem.setEnabled(newValue) {
-                        loginItemError = message
-                    }
-                }
-            ))
-            .toggleStyle(.checkbox)
-
-            // フッター: バージョン表示 + 保存系ボタン
-            HStack {
-                Text(L.format("settings.version", appVersion))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Button(L.string("button.cancel")) {
-                    viewModel.revert()
-                    onClose()
-                }
-                .keyboardShortcut(.cancelAction)
-                Button(L.string("button.apply")) {
-                    viewModel.apply()
-                }
-                .disabled(!viewModel.hasChanges)
-                Button(L.string("button.ok")) {
-                    viewModel.apply()
-                    onClose()
-                }
-                .keyboardShortcut(.defaultAction)
-            }
         }
         .padding()
-        .frame(minWidth: 600, minHeight: 460)
-        .alert(L.string("alert.error.title"), isPresented: Binding(
-            get: { loginItemError != nil },
-            set: { if !$0 { loginItemError = nil } }
-        )) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(loginItemError ?? "")
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
