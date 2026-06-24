@@ -1,4 +1,6 @@
 /* Menu (StatusBarController) */
+"menu.version" = "Snapperkun %@";
+"menu_bar.local" = "Local";
 "menu.settings" = "Settings…";
 "menu.check_permission" = "Check Accessibility Permission";
 "menu.check_update" = "Check for Updates…";
