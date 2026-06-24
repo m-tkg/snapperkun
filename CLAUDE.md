@@ -66,6 +66,9 @@ swift run                    # 直接実行（開発時）
 - **`Settings` の名前衝突**: SwiftUI を import するファイルでは `Settings` / `Binding` が
   SwiftUI の同名型と衝突するため `SnapperCore.Settings` / `SnapperCore.Binding`、
   SwiftUI 側は `@SwiftUI.Binding` と明示する。
+- **多重起動防止**: `main.swift` は起動時に同じ bundle ID の他インスタンス
+  （`NSRunningApplication.runningApplications(withBundleIdentifier:)`）を検出したら、
+  それを前面化して自分は `exit(0)` する。ホットキー登録の二重起動を防ぐため。
 
 ## 多言語対応（ローカライズ）
 
