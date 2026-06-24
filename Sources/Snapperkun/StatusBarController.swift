@@ -12,6 +12,11 @@ final class StatusBarController: NSObject {
 
     private static var checkUpdateTitle: String { L.string("menu.check_update") }
 
+    /// ローカル検証ビルド（バンドル ID が `.local` で終わる）かどうか。
+    private var isLocalBuild: Bool {
+        (Bundle.main.bundleIdentifier ?? "").hasSuffix(".local")
+    }
+
     init(
         openSettings: @escaping () -> Void,
         checkPermission: @escaping () -> Void,
@@ -37,9 +42,21 @@ final class StatusBarController: NSObject {
                     button.title = "▱"
                 }
             }
+            // ローカルビルドは「ローカル」を併記して本番と区別する。
+            if isLocalBuild {
+                button.title = " " + L.string("menu_bar.local")
+                button.imagePosition = .imageLeading
+            }
         }
 
         let menu = NSMenu()
+        // 先頭にバージョン情報（操作不可）。ローカルビルドは併記する。
+        var versionTitle = L.format("menu.version", UpdateService.currentVersion)
+        if isLocalBuild { versionTitle += " (" + L.string("menu_bar.local") + ")" }
+        let versionItem = NSMenuItem(title: versionTitle, action: nil, keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+        menu.addItem(.separator())
         menu.addItem(menuItem(title: L.string("menu.settings"), action: #selector(handleOpenSettings), key: ","))
         menu.addItem(menuItem(title: L.string("menu.check_permission"), action: #selector(handleCheckPermission), key: ""))
         updateItem = menuItem(title: Self.checkUpdateTitle, action: #selector(handleCheckForUpdate), key: "")
