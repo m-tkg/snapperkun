@@ -12,6 +12,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBar: StatusBarController?
     private var settingsWindowController: SettingsWindowController?
     private var settings = Settings.empty
+    /// 設定ウィンドウ表示中は true。グローバルホットキーを一時停止し、
+    /// 記録欄（ShortcutRecorderView）が自分自身の登録済みホットキーに
+    /// キー入力を横取りされないようにする。
+    private var isEditingSettings = false
 
     private let updateService = UpdateService()
     private lazy var selfUpdater = SelfUpdater(service: updateService)
@@ -37,6 +41,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func reloadHotkeys() {
+        // 設定編集中はホットキーを止めたままにする（記録欄でキーを横取りしないため）。
+        // Apply 中も再登録せず、ウィンドウを閉じたタイミングでまとめて登録し直す。
+        guard !isEditingSettings else {
+            log.info("reloadHotkeys: suspended (editing settings)")
+            hotkeyManager.unregisterAll()
+            return
+        }
         let assigned = settings.bindings.filter { $0.keyCombo != nil }.count
         log.info("reloadHotkeys: bindings=\(self.settings.bindings.count) assigned=\(assigned) axTrusted=\(AccessibilityPermission.isTrusted)")
         hotkeyManager.register(bindings: settings.bindings) { [weak self] binding in
@@ -52,6 +63,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     guard let self else { return }
                     self.settings = newSettings
                     try? self.store.save(newSettings)
+                    self.reloadHotkeys()
+                },
+                onBeginEditing: { [weak self] in
+                    guard let self else { return }
+                    self.isEditingSettings = true
+                    self.reloadHotkeys()
+                },
+                onEndEditing: { [weak self] in
+                    guard let self else { return }
+                    self.isEditingSettings = false
                     self.reloadHotkeys()
                 }
             )
