@@ -10,9 +10,20 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let viewModel: SettingsViewModel
     private let loginItem = LoginItemController()
+    /// ウィンドウ表示時（編集開始）に呼ぶ。グローバルホットキーを停止させる。
+    private let onBeginEditing: () -> Void
+    /// ウィンドウクローズ時（編集終了）に呼ぶ。グローバルホットキーを再登録させる。
+    private let onEndEditing: () -> Void
 
-    init(initialSettings: SnapperCore.Settings, onApply: @escaping (SnapperCore.Settings) -> Void) {
+    init(
+        initialSettings: SnapperCore.Settings,
+        onApply: @escaping (SnapperCore.Settings) -> Void,
+        onBeginEditing: @escaping () -> Void,
+        onEndEditing: @escaping () -> Void
+    ) {
         self.viewModel = SettingsViewModel(settings: initialSettings, onApply: onApply)
+        self.onBeginEditing = onBeginEditing
+        self.onEndEditing = onEndEditing
         super.init()
     }
 
@@ -36,6 +47,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             window.delegate = self
             self.window = window
         }
+        // 編集中はグローバルホットキーを止める（記録欄でキーを横取りされないため）。
+        onBeginEditing()
         // 設定表示中は Dock にも出す。
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
@@ -44,6 +57,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        // 編集終了。停止していたグローバルホットキーを再登録させる。
+        onEndEditing()
         // 閉じたらメニューバー常駐のみに戻す（Dock アイコンを隠す）。
         NSApp.setActivationPolicy(.accessory)
     }
