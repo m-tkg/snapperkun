@@ -6,7 +6,21 @@ import SnapperCore
 final class RecorderNSView: NSView {
     var keyCombo: KeyCombo? { didSet { needsDisplay = true } }
     var onChange: ((KeyCombo) -> Void)?
-    private var recording = false { didSet { needsDisplay = true } }
+    /// 記録中だけ設置するローカルキーイベントモニタ。
+    /// 矢印キーは SwiftUI/AppKit のフォーカス移動に先に消費され keyDown まで届かないため、
+    /// keyDown より前に捕捉して取りこぼしを防ぐ（取り込んだイベントは nil を返して消費する）。
+    private var monitor: Any?
+    private var recording = false {
+        didSet {
+            guard recording != oldValue else { return }
+            needsDisplay = true
+            if recording {
+                installMonitor()
+            } else {
+                removeMonitor()
+            }
+        }
+    }
 
     override var acceptsFirstResponder: Bool { true }
     override var intrinsicContentSize: NSSize { NSSize(width: 170, height: 24) }
@@ -16,16 +30,39 @@ final class RecorderNSView: NSView {
         window?.makeFirstResponder(self)
     }
 
-    override func keyDown(with event: NSEvent) {
-        guard recording else {
-            super.keyDown(with: event)
-            return
+    override func resignFirstResponder() -> Bool {
+        recording = false
+        return true
+    }
+
+    deinit {
+        removeMonitor()
+    }
+
+    // MARK: - 記録
+
+    private func installMonitor() {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            self?.handleRecording(event) ?? event
         }
+    }
+
+    private func removeMonitor() {
+        if let monitor {
+            NSEvent.removeMonitor(monitor)
+            self.monitor = nil
+        }
+    }
+
+    /// 記録中のキーイベントを処理する。取り込んだら nil（消費）、対象外なら event（素通し）を返す。
+    private func handleRecording(_ event: NSEvent) -> NSEvent? {
+        guard recording else { return event }
         // Escape は記録キャンセル
         if event.keyCode == 53 {
             recording = false
             window?.makeFirstResponder(nil)
-            return
+            return nil
         }
         let modifiers = Self.modifiers(from: event.modifierFlags)
         let combo = KeyCombo(keyCode: UInt32(event.keyCode), modifiers: modifiers)
@@ -33,11 +70,7 @@ final class RecorderNSView: NSView {
         recording = false
         onChange?(combo)
         window?.makeFirstResponder(nil)
-    }
-
-    override func resignFirstResponder() -> Bool {
-        recording = false
-        return true
+        return nil
     }
 
     override func draw(_ dirtyRect: NSRect) {
