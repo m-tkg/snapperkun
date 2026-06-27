@@ -11,6 +11,8 @@ final class StatusBarController: NSObject {
     private let checkForUpdate: () -> Void
     private let quitApp: () -> Void
     private var updateItem: NSMenuItem!
+    /// 新バージョンがあるときにメニューバーアイコン右下へ重ねる赤バッジ。
+    private var badgeView: NSView!
 
     private static var checkUpdateTitle: String { L.string("menu.check_update") }
 
@@ -49,6 +51,7 @@ final class StatusBarController: NSObject {
                 button.title = " " + L.string("menu_bar.local")
                 button.imagePosition = .imageLeading
             }
+            setupBadge(on: button)
         }
 
         // 先頭にバージョン情報（操作不可）。ローカルビルドは併記する。
@@ -67,14 +70,54 @@ final class StatusBarController: NSObject {
         statusItem.menu = menu
     }
 
-    /// 新バージョンが利用可能なときにメニュー文言を変更する。
+    /// 新バージョンが利用可能なときにメニュー文言を変更し、赤バッジを表示する。
     func setUpdateAvailable(tag: String) {
         updateItem.title = L.format("menu.install_update", tag)
+        badgeView?.isHidden = false
     }
 
-    /// 最新（更新なし）状態に戻す。
+    /// 最新（更新なし）状態に戻し、赤バッジを消す。
     func clearUpdateAvailable() {
         updateItem.title = Self.checkUpdateTitle
+        badgeView?.isHidden = true
+    }
+
+    /// アイコン右下に重ねる赤バッジ（小さな赤丸）を構成する。
+    /// ベースアイコンは template のまま維持し、色付きの丸は別 view として
+    /// オーバーレイする（画像へ焼き込むとメニューバーの自動着色が壊れるため）。
+    /// 位置は trailing ではなく **アイコン画像の幅基準** で右下に固定するので、
+    /// ローカルビルドで「ローカル」を併記（`imagePosition = .imageLeading`）しても
+    /// 常にアイコングリフの右下に乗る。
+    /// 注意: kuntraykun に集約されてアイコンを隠している間（`setManagedHidden(true)`）は
+    /// アイコンごと非表示になるためバッジも見えない（集約先への伝搬は対象外）。
+    private func setupBadge(on button: NSStatusBarButton) {
+        let badgeSize: CGFloat = 7
+        // アイコングリフの幅。テキスト併記時でも画像自身の幅を基準にする。
+        let iconWidth = button.image?.size.width ?? badgeSize
+
+        let badge = NSView()
+        badge.wantsLayer = true
+        badge.translatesAutoresizingMaskIntoConstraints = false
+        if let layer = badge.layer {
+            layer.backgroundColor = NSColor.systemRed.cgColor
+            layer.cornerRadius = badgeSize / 2
+            // メニューバー背景に溶けないよう細い白の縁取りを付ける。
+            layer.borderWidth = 1
+            layer.borderColor = NSColor.white.cgColor
+        }
+        badge.isHidden = true
+        badge.toolTip = L.string("badge.update_available")
+        badge.setAccessibilityLabel(L.string("badge.update_available"))
+
+        button.addSubview(badge)
+        NSLayoutConstraint.activate([
+            badge.widthAnchor.constraint(equalToConstant: badgeSize),
+            badge.heightAnchor.constraint(equalToConstant: badgeSize),
+            badge.leadingAnchor.constraint(
+                equalTo: button.leadingAnchor, constant: iconWidth - badgeSize),
+            badge.bottomAnchor.constraint(equalTo: button.bottomAnchor),
+        ])
+        badgeView = badge
     }
 
     // MARK: - kuntraykun 連携

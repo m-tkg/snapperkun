@@ -21,6 +21,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let updateService = UpdateService()
     private lazy var selfUpdater = SelfUpdater(service: updateService)
     private var availableRelease: ReleaseInfo?
+    /// 定期サイレントチェック用タイマー。
+    private var updateTimer: Timer?
+    /// 定期チェック間隔（1時間）。GitHub 未認証 API のレート制限 60回/時 に十分収まる。
+    private let updateCheckInterval: TimeInterval = 3600
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // ウィンドウ操作に必要なアクセシビリティ権限を要求する。
@@ -45,8 +49,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bridge.start()
         kuntraykunBridge = bridge
 
-        // 起動時にサイレントで更新チェック（あればメニュー文言を変更）。
+        // 起動時にサイレントで更新チェック（あればメニュー文言＋赤バッジを反映）。
         startUpdateCheck(interactive: false)
+        startUpdateMonitoring()
+    }
+
+    /// 起動時の1回に加え、定期＋スリープ復帰時にもサイレントチェックする。
+    /// 結果は集約点 `startUpdateCheck` 経由でメニュー文言と赤バッジへ同期される。
+    private func startUpdateMonitoring() {
+        // 定期チェック。Timer はメインスレッドで発火するため
+        // MainActor.assumeIsolated で @MainActor 隔離の処理を呼ぶ。
+        // tolerance を間隔の10%付けて省電力のためコアレッシングを許可する。
+        let timer = Timer.scheduledTimer(
+            withTimeInterval: updateCheckInterval, repeats: true
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.startUpdateCheck(interactive: false)
+            }
+        }
+        timer.tolerance = updateCheckInterval * 0.1
+        updateTimer = timer
+
+        // Timer はスリープ中に発火しないため、復帰時にも即チェックする
+        // （ノート PC で「閉じている間に新版」に対応）。
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.startUpdateCheck(interactive: false)
+            }
+        }
     }
 
     private func reloadHotkeys() {
