@@ -7,6 +7,9 @@
 "menu.install_update" = "Install Update %@…";
 "menu.quit" = "Quit Snapperkun";
 
+/* Menu bar badge (StatusBarController) */
+"badge.update_available" = "An update is available";
+
 /* Settings window / panels */
 "settings.window.title" = "Snapperkun Settings";
 "panel.export.title" = "Export Settings";
