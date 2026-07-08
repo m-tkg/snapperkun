@@ -1,6 +1,7 @@
 import AppKit
 import OSLog
 import KunIntegrationBridge
+import KunUpdateKit
 import SnapperCore
 
 private let log = Logger(subsystem: "com.mtkg.snapperkun", category: "app")
@@ -24,8 +25,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var availableRelease: ReleaseInfo?
     /// 定期サイレントチェック用タイマー。
     private var updateTimer: Timer?
-    /// 定期チェック間隔（1時間）。GitHub 未認証 API のレート制限 60回/時 に十分収まる。
-    private let updateCheckInterval: TimeInterval = 3600
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // ウィンドウ操作に必要なアクセシビリティ権限を要求する。
@@ -64,13 +63,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // MainActor.assumeIsolated で @MainActor 隔離の処理を呼ぶ。
         // tolerance を間隔の10%付けて省電力のためコアレッシングを許可する。
         let timer = Timer.scheduledTimer(
-            withTimeInterval: updateCheckInterval, repeats: true
+            withTimeInterval: KunUpdateSchedule.checkInterval, repeats: true
         ) { [weak self] _ in
             MainActor.assumeIsolated {
                 self?.startUpdateCheck(interactive: false)
             }
         }
-        timer.tolerance = updateCheckInterval * 0.1
+        timer.tolerance = KunUpdateSchedule.checkIntervalTolerance
         updateTimer = timer
 
         // Timer はスリープ中に発火しないため、復帰時にも即チェックする
