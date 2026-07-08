@@ -1,4 +1,5 @@
 import AppKit
+import KunAppKit
 import SwiftUI
 import UniformTypeIdentifiers
 import SnapperCore
@@ -9,7 +10,8 @@ import SnapperCore
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let viewModel: SettingsViewModel
-    private let loginItem = LoginItemController()
+    private let loginItem = LoginItemController(
+        requiresApprovalMessage: { L.string("login_item.requires_approval") })
     /// ウィンドウ表示時（編集開始）に呼ぶ。グローバルホットキーを停止させる。
     private let onBeginEditing: () -> Void
     /// ウィンドウクローズ時（編集終了）に呼ぶ。グローバルホットキーを再登録させる。
