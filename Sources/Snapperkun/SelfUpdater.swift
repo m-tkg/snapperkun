@@ -1,5 +1,6 @@
 import AppKit
 import OSLog
+import KunUpdateKit
 import SnapperCore
 
 private let logger = Logger(subsystem: "com.mtkg.snapperkun", category: "SelfUpdater")
