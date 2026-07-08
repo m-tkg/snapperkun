@@ -1,6 +1,8 @@
 import AppKit
 import OSLog
+import KunAppKit
 import KunIntegrationBridge
+import KunSupport
 import KunUpdateKit
 import SnapperCore
 
@@ -8,7 +10,8 @@ private let log = Logger(subsystem: "com.mtkg.snapperkun", category: "app")
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let store = SettingsStore(url: SettingsStore.defaultURL())
+    private let store = KunSettingsStore<Settings>(
+        url: KunSettingsStore<Settings>.defaultURL(appFolderName: "Snapperkun"), defaultValue: .empty)
     private let hotkeyManager = HotkeyManager()
     private let engine = SnapEngine()
     private var statusBar: StatusBarController?
@@ -21,7 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var isEditingSettings = false
 
     private let updateService = UpdateService()
-    private lazy var selfUpdater = SelfUpdater(service: updateService)
+    private let selfUpdater = SelfUpdater(appName: "Snapperkun")
     private var availableRelease: ReleaseInfo?
     /// 定期サイレントチェック用タイマー。
     private var updateTimer: Timer?
