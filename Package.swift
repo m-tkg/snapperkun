@@ -23,6 +23,7 @@ let package = Package(
             dependencies: [
                 "SnapperCore",
                 .product(name: "KunIntegrationBridge", package: "kunkit"),
+                .product(name: "KunUpdateKit", package: "kunkit"),
             ],
             // en.lproj / ja.lproj の Localizable.strings をリソースバンドルに含める。
             resources: [
