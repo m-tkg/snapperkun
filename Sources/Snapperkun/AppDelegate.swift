@@ -44,10 +44,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // kuntraykun 連携: 管理対象なら自分のアイコンを隠し、showMenu でメニューを出す。
         let bridge = KuntraykunBridge(
             setHidden: { [weak self] hidden in self?.statusBar?.setManagedHidden(hidden) },
-            popUpMenu: { [weak self] point in self?.statusBar?.popUpMenu(at: point) }
+            popUpMenu: { [weak self] point in self?.statusBar?.popUpMenu(at: point) },
+            exportMenu: { [weak self] in self?.statusBar?.exportMenuSnapshot() },
+            performMenuItem: { [weak self] id in self?.statusBar?.performMenuItem(id: id) ?? false }
         )
         bridge.start()
         kuntraykunBridge = bridge
+        // 起動時に現在のメニュー構造を書き出しておく（kuntraykun 起動済みでもすぐサブメニューが出せる）。
+        statusBar?.exportMenuSnapshot()
 
         // 起動時にサイレントで更新チェック（あればメニュー文言＋赤バッジを反映）。
         startUpdateCheck(interactive: false)
