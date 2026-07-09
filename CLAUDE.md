@@ -2,7 +2,7 @@
 
 このリポジトリで作業する際のガイド。
 
-**メニューバー常駐アプリ（kun シリーズ）共通の方針は上位ディレクトリの [`../CLAUDE_base.md`](../CLAUDE_base.md) を参照**
+**メニューバー常駐アプリ（kun シリーズ）共通の方針は上位ディレクトリの [`../kun-template/CLAUDE_base.md`](../kun-template/CLAUDE_base.md) を参照**
 （Swift Package 構成・日英ローカライズ・アップデート・kunkit 連携・リリース手順／ブランチ運用・ローカルビルド・署名／公証など）。
 共通方針を変えるときは `CLAUDE_base.md`（[kun-template](https://github.com/m-tkg/kun-template) が canonical）を編集する。
 本ファイルには snapperkun 固有の事項のみを記す。
@@ -84,7 +84,7 @@ swift run                    # 直接実行（開発時）
 
 更新チェックは起動時の1回だけでなく、定期＋スリープ復帰時にもサイレントで行い、新版があれば
 メニューバーアイコン右下に赤バッジ（小さな赤丸）を出す（最新になったら消す）。方式の共通方針は
-`../CLAUDE_base.md`「### 4. アップデート機能を入れる」を正とする。snapperkun 固有の要点:
+`../kun-template/CLAUDE_base.md`「### 4. アップデート機能を入れる」を正とする。snapperkun 固有の要点:
 
 - **定期監視**（`AppDelegate.startUpdateMonitoring()`）: `Timer.scheduledTimer` で kunkit の
   `KunUpdateSchedule.checkInterval`（6時間）間隔のサイレントチェック。`tolerance` も
@@ -117,7 +117,7 @@ swift run                    # 直接実行（開発時）
 - **アクター分離の注意**: kunkit の `KuntraykunBridge` / `KuntraykunMenuExport` は `@MainActor` だが、
   本アプリの `StatusBarController` は非分離クラス。ブリッジ生成は `@MainActor` 限定の
   `makeKuntraykunBridge()` に閉じ込め、MainActor 隔離の `AppDelegate` から呼ぶ。
-- 仕様: kuntraykun リポジトリ `docs/kun-integration-protocol.md`、共通方針は `../CLAUDE_base.md`「Kuntraykun 連携」。
+- 仕様: kuntraykun リポジトリ `docs/kun-integration-protocol.md`、共通方針は `../kun-template/CLAUDE_base.md`「Kuntraykun 連携」。
 - 管理対象フラグは kunkit が `UserDefaults`（キー `KuntraykunManaged`）に永続化する。
 - **kunkit 由来の共通実装**: 自己更新（`SelfUpdater`）・ログイン項目（`LoginItemController`）・多重起動防止（`KunAppLaunch`、`main.swift`）・設定永続化（`KunSettingsStore`）・外部プロセス実行（`ProcessRunner`）・更新チェック（`GitHubReleaseFetcher` / `ReleaseInfo` / `VersionComparator` / `KunUpdateSchedule` / `ReleaseDownloader`）は kunkit（`KunAppKit` / `KunSupport` / `KunUpdateKit`）が提供する。アプリ側に複製は持たず、アプリ名・文言・repo は注入する。設定の import/export 用 JSON 変換（`SettingsCodec`）は snapperkun 固有のため `SnapperCore` に残す。
 - **ローカル自己更新の修正**: 従来の自前 `SelfUpdater` は bundle ID を完全一致で検証していたため、ローカルビルド（`.local` サフィックス）から本番リリースへ自己更新できなかった。kunkit の `SelfUpdater` は `BundleIdentity` で**基底 ID（`.local` 除去）比較**するのでこの不具合が解消される。
